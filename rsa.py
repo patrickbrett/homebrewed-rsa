@@ -31,15 +31,17 @@ Helper for running the extended Euclidean algorithm
 """
 class LinearSum:
     """
-    Represents a0 * a1 + b0 * b1
+    Represents a * b + c * d
     """
-    def __init__(self, a, b):
+    def __init__(self, a, b, c, d):
         self.a = a
         self.b = b
+        self.c = c
+        self.d = d
 
 
     def __repr__(self):
-        return(f"({self.a[0]} * {self.a[1]} + {self.b[0]} * {self.b[1]})")
+        return(f"({self.a} * {self.b} + {self.c} * {self.d})")
 
 
     """
@@ -48,7 +50,7 @@ class LinearSum:
     def count(self):
         count = Counter()
 
-        for cont, mul in [self.a, self.b]:
+        for cont, mul in [(self.a, self.b), (self.c, self.d)]:
             if isinstance(cont, LinearSum):
                 temp_count = cont.count()
                 for k in temp_count.keys():
@@ -73,7 +75,6 @@ class Cryptor:
     Finds private key given public key and totient
     """
     def find_d(self, e, tot):
-        print(e, tot)
         larger, smaller = max([e, tot]), min([e, tot])
 
         mem = {}
@@ -81,27 +82,21 @@ class Cryptor:
             div = larger // smaller
             rem = larger % smaller
 
-            mem[rem] = LinearSum((larger, 1), (smaller, -1 * div))
+            mem[rem] = LinearSum(larger, 1, smaller, -1 * div)
 
             larger, smaller = smaller, rem
         
         for k in reversed(sorted(mem.keys())):
-            a0, a1 = mem[k].a[0], 1
-            b0, b1 = mem[k].b
+            a, b, c, d = mem[k].a, 1, mem[k].c, mem[k].d
 
-            if a0 in mem:
-                a0 = mem[a0]
-            if b0 in mem:
-                b0 = mem[b0]
+            if a in mem: a = mem[a]
+            if c in mem: c = mem[c]
 
-            a = a0, a1
-            b = b0, b1
-
-            mem[k] = LinearSum(a, b)
+            mem[k] = LinearSum(a, b, c, d)
 
         counts = mem[1].count()
         return counts[e] % tot
 
 
 if __name__ == '__main__':
-    Cryptor(5, 11, 7)
+    print(Cryptor(5, 11, 7).d)
